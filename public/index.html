@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Todo App</title>
+  <meta charset="utf-8" />
+  <link rel="icon" href="./img/favicon.ico" />
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Google+Sans" />
+  <link rel="stylesheet" href="./stylesheets/reset.css" />
+  <link rel="stylesheet" href="./stylesheets/style.css" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.6/handlebars.min.js"></script>
+  <script src="./javascripts/todoManager.js"></script>
+  <script src="./javascripts/todoApp.js"></script>
+</head>
+<body>
+  <nav>
+    <section>
+      <header id="all-todos-group" class="due-month-header"
+              title="display all todos">
+        <h2><img class="all-todos-icon" src="./img/all-todos-icon.png" />All Todos</h2>
+        <span id="all-todos-count" class="count"></span>
+      </header>
+      <ul id="all-lists"></ul>
+    </section>
+
+    <section>
+      <header id="completed-todos-group" class="due-month-header"
+              title="display all completed todos">
+        <h2><img class="completed-icon" src="./img/completed-icon.png" />Completed</h2>
+        <span id="completed-todos-count" class="count"></span>
+      </header>
+      <ul id="completed-lists"></ul>
+    </section>
+  </nav>
+
+  <main>
+    <header>
+      <div id="primary-due-month-header">
+        <h1 id="due-month-name">All Todos</h1>
+        <span id="due-month-count" class="main-count"></span>
+      </div>
+      <span id="add-todo">+ Add New Todo</span>
+    </header>
+
+    <section id="todo-list">
+    </section>
+  </main>
+
+  <!-- Modal -->
+  <div id="modal" class="modal">
+    <div id="form-content"></div>
+  </div>
+
+  <!-- Templates -->
+  <script id="due-month-list" type="text/x-handlebars">
+    {{#each dueMonths}}
+      <li class="due-month-header {{month}}" data-group="{{month}}"
+          title="display all todos for {{month}}">
+        <span class="due-month">{{month}}</span>
+        <span class="count">{{count}}</span>
+      </li>
+    {{/each}}
+  </script>
+
+  <script id="due-month-completed-list" type="text/x-handlebars">
+    {{#each dueMonths}}
+      <li class="due-month-header {{month}}" data-group="{{month}}"
+          title="display completed todos for {{month}}">
+        <span class="due-month completed">{{month}}</span>
+        <span class="count">{{count}}</span>
+      </li>
+    {{/each}}
+  </script>
+
+  <script id="todo-list-template" type="text/x-handlebars">
+    <ul id="not-completed">
+      {{#each todos}}
+        {{#unless completed}}
+          <li class="not-completed">
+            {{#todoItem}}{{this}}{{/todoItem}}
+          </li>
+        {{/unless}}
+      {{/each}}
+    </ul>
+    <ul id="completed">
+      {{#each todos}}
+        {{#if completed}}
+          <li class="completed">
+            {{#todoItem}}{{this}}{{/todoItem}}
+          </li>
+        {{/if}}
+      {{/each}}
+    </ul>
+  </script>
+
+  <script id="todo-item-template" type="text/x-handlebars">
+    <span data-todo-id="{{id}}" class="todo-item" title="click to toggle completed status">
+      <span data-todo-id="{{id}}" class="todo-title"
+            title="edit todo">{{title}} - {{#date}}{{this}}{{/date}}</span>
+    </span>
+    <img data-todo-id="{{id}}" class="delete-icon" title="delete todo" src="./img/delete.png" />
+  </script>
+
+  <script id="add-todo-template" type="text/x-handlebars">
+    <form id="add-form" method="post" action="/api/todos" novalidate>
+      <ul>
+        <li class="form-row">
+          <label for="title">Title</label>
+          <input class="input" type="text" name="title" id="form-title"
+                 placeholder="Item Name" required minlength="3" />
+        </li>
+        <li class="form-row">
+          <label for="due-date">Due Date</label>
+          <div class="input" name="due-date">
+            <select id="due-day" name="day">
+              <option value="  ">Day</option>
+            </select>
+            <select id="due-month" name="month">
+              <option value="  ">Month</option>
+            </select>
+            <select id="due-year" name="year">
+              <option value="    ">Year</option>
+            </select>
+          </div>
+        </li>
+        <li class="form-row">
+          <label for="description">Description</label>
+          <textarea class="input" name="description" placeholder="Description"></textarea>
+        </li>
+        <li class="form-row">
+          <div></div>
+          <div id="form-buttons">
+            <button id="save-button" type="submit">Save</button>
+            <button id="toggle-complete-button"></button>
+          </div>
+        </li>
+      </ul>
+    </form>
+  </script>
+
+  <script id="edit-todo-template" type="text/x-handlebars">
+    <form id="edit-form" method="put" action="/api/todos/{{id}}">
+      <ul>
+        {{#formFields}}{{this}}{{/formFields}}
+        <li class="form-row">
+          <div></div>
+          <div id="form-buttons">
+            <button id="save-button" type="submit">Save</button>
+            <button data-todo-id="{{id}}" id="toggle-complete-button"></button>
+          </div>
+        </li>
+      </ul>
+    </form>
+  </script>
+
+  <script id="form-fields-template" type="text/x-handlebars">
+    <li class="form-row">
+      <label for="title">Title</label>
+      <input class="input" type="text" name="title" id="form-title" placeholder="Item Name" value="{{title}}"/>
+    </li>
+    <li class="form-row">
+      <label for="due-date">Due Date</label>
+      <div class="input" name="due-date">
+        <select id="due-day" name="day">
+          <option value="  ">Day</option>
+        </select>
+        <select id="due-month" name="month">
+          <option value="  ">Month</option>
+        </select>
+        <select id="due-year" name="year">
+          <option value="    ">Year</option>
+        </select>
+      </div>
+    </li>
+    <li class="form-row">
+      <label for="description">Description</label>
+      <textarea class="input" name="description" placeholder="Description">{{description}}</textarea>
+    </li>
+  </script>
+</body>
+</html>
