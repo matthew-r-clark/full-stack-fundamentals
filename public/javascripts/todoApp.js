@@ -31,6 +31,9 @@ function serializeFormToJson(form) {
 
 $(function() {
   const App = {
+    setUsername: function(username) {
+      $('#username').text(username);
+    },
     displayModal: function(todo) {
       this.showModal();
       this.buildForm(todo);
@@ -292,15 +295,15 @@ $(function() {
       xhr.send(JSON.stringify(json));
     },
     sendRequestToggleCompletedStatusById(id) {
-      let todoStatus = this.todos.get(id).completed;
+      let todo = this.todos.get(id);
       let $form = $('form');
       let json;
       if ($form.get(0)) {
         json = serializeFormToJson($form.get(0));
-        json.completed = !todoStatus;
       } else {
-        json = {completed: !todoStatus};
+        json = todo;
       }
+      json.completed = !todo.completed;
       let xhr = new XMLHttpRequest();
       xhr.open('put', `/api/todos/${id}`);
       xhr.setRequestHeader('Content-Type', 'application/json');
@@ -341,8 +344,18 @@ $(function() {
       }.bind(this));
       xhr.send();
     },
+    sendRequestForUsername: function() {
+      let xhr = new XMLHttpRequest();
+      xhr.open('get', '/api/username');
+      xhr.responseType = 'text';
+      xhr.addEventListener('load', function() {
+        this.setUsername(xhr.response);
+      }.bind(this));
+      xhr.send();
+    },
     init: function() {
       this.todos;
+      this.sendRequestForUsername();
       this.sendRequestGetAllTodos();
       this.bindElements();
       this.bindEventHandlers();

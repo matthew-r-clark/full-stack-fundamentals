@@ -46,7 +46,7 @@ TodoManager.prototype.delete = function(id) {
 }
 
 TodoManager.prototype.get = function(id) {
-  return this.list.filter(t => t.id === String(id))[0];
+  return this.list.filter(t => String(t.id) === String(id))[0];
 }
 
 TodoManager.prototype.trimDueDate = function(todo) {

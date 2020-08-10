@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Document</title>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="./stylesheets/reset.css" />
+  <link rel="stylesheet" href="./stylesheets/style.css" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="./javascripts/login.js"></script>
+</head>
+<body>
+  <form id="login-form" class="login" method="post" action="/login">
+    <p id="flash-message"></p>
+    <div>
+      <label>Username:
+        <input type="text" name="username" required>
+      </label>
+    </div>
+    <div>
+      <label>Password:
+        <input type="password" name="password" required>
+      </label>
+    </div>
+    <div>
+      <button id="login-button" type="submit">Log In</button>
+      <button id="signup-button">Create Account</button>
+    </div>
+  </form>
+</body>
+</html>

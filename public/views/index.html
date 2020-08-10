@@ -35,9 +35,15 @@
 
   <main>
     <header>
-      <div id="primary-due-month-header">
-        <h1 id="due-month-name">All Todos</h1>
-        <span id="due-month-count" class="main-count"></span>
+      <div class="space-between">
+        <div id="primary-due-month-header">
+          <h1 id="due-month-name">All Todos</h1>
+          <span id="due-month-count" class="main-count"></span>
+        </div>
+        <div>
+          <span id="username"></span>
+          <a href="/logout">Logout</a>
+        </div>
       </div>
       <span id="add-todo">+ Add New Todo</span>
     </header>
@@ -146,7 +152,7 @@
           <div></div>
           <div id="form-buttons">
             <button id="save-button" type="submit">Save</button>
-            <button data-todo-id="{{id}}" id="toggle-complete-button"></button>
+            <button data-todo-id="{{id}}" id="toggle-complete-button" type="button"></button>
           </div>
         </li>
       </ul>
