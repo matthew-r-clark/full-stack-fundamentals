@@ -5,37 +5,9 @@ const app = express();
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const FileStore = require('session-file-store')(session);
-const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
 const repo = require('./database');
 
 const port = process.env.PORT;
-
-passport.use(new LocalStrategy(
-  { usernameField: 'username', passwordField: 'password' },
-  function(username, password, done) {
-    repo.getUserByName(username)
-        .then(result => {
-          let user = result[0];
-          if (!user || user.password !== password) {
-            done(null, false);
-          }
-          done(null, user);
-        })
-        .catch(handleError);
-  }
-));
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-passport.deserializeUser((id, done) => {
-  repo.getUserById(id)
-      .then(result => {
-        let user = result[0] || false;
-        done(null, user);
-      })
-      .catch(handleError);
-});
 
 app.use(express.static('public'));
 app.use(bodyParser.json());
@@ -51,8 +23,6 @@ const sessionOptions = {
   saveUninitialized: true,
 };
 app.use(session(sessionOptions));
-app.use(passport.initialize());
-app.use(passport.session());
 
 app.listen(port, function() {
   console.log('Listening on port ' + port);
@@ -98,11 +68,6 @@ function buildTodo(data) {
   return todo;
 }
 
-const redirectConfig = {
-  successRedirect: '/',
-  failureRedirect: '/login',
-};
-
 // ROUTES
 app.get('/', function(req, res) {
   if (req.isAuthenticated()) {
@@ -119,14 +84,7 @@ app.get('/login', function(req, res) {
 });
 
 app.post('/login', function(req, res, next) {
-  passport.authenticate('local', function(err, user, info) {
-    if (err) { return next(err); }
-    if (!user) { return res.redirect('/login'); }
-    req.login(user, function(err) {
-      if (err) { return next(err); }
-      return res.redirect('/');
-    });
-  })(req, res, next);
+
 });
 
 app.get('/logout', function(req, res) {
