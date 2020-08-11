@@ -1,6 +1,4 @@
 $(function() {
-  let flashMessage = '';
-
   function updateFlashMessage(message) {
     if (!message) {
       message = '';
@@ -8,14 +6,15 @@ $(function() {
     $('#flash-message').text(message);
   }
   
-  $form = $('#login-form');
-  $signup = $('#signup-button');
+  $loginForm = $('#login-form');
+  $createForm = $('#create-form');
+  $('.focus-field').focus();
 
-  $form.submit(function(event) {
+  $loginForm.submit(function(event) {
     event.preventDefault();
-    let json = serializeFormToJson($form.get(0));
-    let method = $form.attr('method');
-    let url = $form.attr('action');
+    let json = serializeFormToJson($loginForm.get(0));
+    let method = $loginForm.attr('method');
+    let url = $loginForm.attr('action');
 
     let xhr = new XMLHttpRequest();
     xhr.open(method, url);
@@ -23,21 +22,24 @@ $(function() {
     xhr.addEventListener('load', function() {
       switch(xhr.status) {
         case 200:
-          window.location.replace('/');
+          window.location.reload();
           break;
         case 401:
-          updateFlashMessage('Username or password are invalid.');
+          updateFlashMessage(xhr.response);
+          break;
+        case 404:
+          updateFlashMessage(xhr.response);
           break;
       }
     });
     xhr.send(JSON.stringify(json));
   });
 
-  $signup.click(function(event) {
+  $createForm.submit(function(event) {
     event.preventDefault();
-    let json = serializeFormToJson($form.get(0));
-    let method = 'post';
-    let url = '/api/createUser';
+    let json = serializeFormToJson($createForm.get(0));
+    let method = $createForm.attr('method');
+    let url = $createForm.attr('action');
 
     let xhr = new XMLHttpRequest();
     xhr.open(method, url);
@@ -45,7 +47,10 @@ $(function() {
     xhr.addEventListener('load', function() {
       switch(xhr.status) {
         case 200:
-          window.location.replace('/');
+          window.location.reload();
+          break;
+        case 400:
+          updateFlashMessage(xhr.response);
           break;
       }
     });
