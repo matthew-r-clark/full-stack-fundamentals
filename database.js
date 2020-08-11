@@ -13,7 +13,7 @@ const pgp = require('pg-promise')(initOptions);
 const db = pgp(process.env.DATABASE_URL);
 const queries = require('./queries');
 
-const Users = {
+const User = {
   addUser: function(user) {
     let sql = queries.addUser;
     let params = [user.username, user.password];
@@ -29,7 +29,7 @@ const Users = {
   },
 }
 
-const Todos = {
+const Todo = {
   addTodo: function(userId, todo) {
     let sql = queries.addTodo;
     let params = [
@@ -71,6 +71,6 @@ const Todos = {
 };
 
 module.exports = {
-  Users: Users,
-  Todos: Todos,
+  User: User,
+  Todo: Todo,
 }
