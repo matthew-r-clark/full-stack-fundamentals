@@ -6,6 +6,10 @@ function handleError(error) {
   console.error(error);
 }
 
+function validatePassword(password, hash) {
+  return bcrypt.compare(password, hash);
+}
+
 function Auth() {}
 
 Auth.prototype.init = function(req, res, next) {
@@ -14,7 +18,6 @@ Auth.prototype.init = function(req, res, next) {
   }
 
   req.login = function(user) {
-    console.log(user);
     delete user.password;
     this.session.user = user;
     this.session.user.authorized = true;
@@ -45,33 +48,30 @@ Auth.prototype.allow = function(req, res, next) {
   }
 }
 
-Auth.prototype.authorize = function(req, res, next) {
+Auth.prototype.authorize = async function(req, res, next) {
   let username = req.body.username;
   let password = req.body.password;
-  User.getUserByName(username)
-      .then(data => {
-        let user = data[0];
-        if (!user) {
-          console.log('user does not exist - within Auth.authorize()');
-          res.status(404).send('User does not exist.');
-        } else {
-          bcrypt.compare(password, user.password, function(err, isValid) {
-            if (err) { handleError(err); }
-            if (!isValid) {
-              console.log('invalid password - within Auth.authorize()');
-              res.status(401).send('Invalid password.');
-            } else {
-              req.login(user);
-              next();
-            }
-          })
-        }
-      })
-      .catch(handleError);
+
+  let data = await User.getUserByName(username);
+  let user = data[0];
+  if (!user) {
+    res.status(404).send('User does not exist.');
+  } else {
+    let isValid = await validatePassword(password, user.password);
+    if (!isValid) {
+      res.status(401).send('Invalid password.');
+    } else {
+      req.login(user);
+      next();
+    }
+  }
 }
 
-Auth.prototype.generateHash = function(password, callback) {
-  bcrypt.hash(password, saltRounds, callback);
+
+
+Auth.prototype.generateHash = function(password) {
+  // bcrypt.hash(password, saltRounds, callback);
+  return bcrypt.hash(password, saltRounds);
 }
 
 module.exports = new Auth();

@@ -13,6 +13,10 @@ const pgp = require('pg-promise')(initOptions);
 const db = pgp(process.env.DATABASE_URL);
 const queries = require('./queries');
 
+function handleError(error) {
+  console.error(error);
+}
+
 const User = {
   addUser: function(user) {
     let sql = queries.addUser;
@@ -41,11 +45,11 @@ const Todo = {
       todo.description
     ];
 
-    return db.one(sql, params);
+    return db.one(sql, params).catch(handleError);
   },
   getTodoById: function(id) {
     let sql = 'SELECT * FROM todos WHERE id = $1';
-    return db.any(sql, id);
+    return db.one(sql, id).catch(handleError);
   },
   updateTodo: function(id, data) {
     let sql = queries.updateTodo;
@@ -58,15 +62,15 @@ const Todo = {
       data.description,
       id
     ];
-    return db.none(sql, params)
+    return db.none(sql, params).catch(handleError);
   },
   getTodosForUser: function(username) {
     let sql = queries.getTodosForUser;
-    return db.any(sql, [username]);
+    return db.any(sql, [username]).catch(handleError);
   },
   deleteTodo: function(id) {
     let sql = 'DELETE FROM todos WHERE id = $1';
-    return db.none(sql, id);
+    return db.none(sql, id).catch(handleError);
   },
 };
 
