@@ -349,7 +349,11 @@ $(function() {
       xhr.open('get', '/api/username');
       xhr.responseType = 'text';
       xhr.addEventListener('load', function() {
-        this.setUsername(xhr.response);
+        switch(xhr.status) {
+          case 200:
+            this.setUsername(xhr.response);
+            break;
+        }
       }.bind(this));
       xhr.send();
     },
