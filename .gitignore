@@ -1,5 +1,5 @@
 node_modules
 sessions
-sql
 
+sql/schema.sql
 .env
