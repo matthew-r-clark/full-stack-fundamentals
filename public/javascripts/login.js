@@ -8,7 +8,7 @@ $(function() {
   
   $loginForm = $('#login-form');
   $createForm = $('#create-form');
-  $('.focus-field').focus();
+  // $('.focus-field').focus();
 
   $loginForm.submit(function(event) {
     event.preventDefault();
