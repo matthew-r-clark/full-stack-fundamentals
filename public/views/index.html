@@ -54,7 +54,8 @@
 
   <!-- Modal -->
   <div id="modal" class="modal">
-    <div id="form-content"></div>
+    <div id="todo-form"></div>
+    <div id="login-form"></div>
   </div>
 
   <!-- Templates -->
@@ -113,7 +114,7 @@
         <li class="form-row">
           <label for="title">Title</label>
           <input class="input" type="text" name="title" id="form-title"
-                 placeholder="Item Name" required minlength="3" />
+                 placeholder="Item Name" required minlength="3" autofocus/>
         </li>
         <li class="form-row">
           <label for="due-date">Due Date</label>
@@ -162,7 +163,8 @@
   <script id="form-fields-template" type="text/x-handlebars">
     <li class="form-row">
       <label for="title">Title</label>
-      <input class="input" type="text" name="title" id="form-title" placeholder="Item Name" value="{{title}}"/>
+      <input class="input" type="text" name="title" id="form-title"
+             placeholder="Item Name" value="{{title}}" autofocus/>
     </li>
     <li class="form-row">
       <label for="due-date">Due Date</label>

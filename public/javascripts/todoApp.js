@@ -34,11 +34,30 @@ $(function() {
     setUsername: function(username) {
       $('#username').text(username);
     },
-    displayModal: function(todo) {
+    displayTodoModal: function(todo) {
       this.showModal();
-      this.buildForm(todo);
-      this.bindModalEventHandlers();
+      this.buildTodoForm(todo);
+      this.bindTodoModalEventHandlers();
     },
+    buildTodoForm: function(todo) {
+      $('#todo-form').html(this.generateTodoFormTemplateHtml(todo));
+      this.setCompleteButton(todo);
+      this.generateDateOptions(todo);
+    },
+    displayLoginModal: function() {
+      this.showModal();
+      this.buildLoginForm();
+      this.bindLoginModalEventHandlers();
+    },
+    buildLoginForm: function() {},
+    bindLoginModalEventHandlers: function() {},
+    displayCreateUserModal: function() {
+      this.showModal();
+      this.buildCreateUserForm();
+      this.bindCreateUserModalEventHandlers();
+    },
+    buildCreateUserForm: function() {},
+    bindCreateUserModalEventHandlers: function() {},
     showModal: function() {
       let $modal = $('#modal');
       $modal.fadeIn();
@@ -49,12 +68,6 @@ $(function() {
       setTimeout(function() {
         $('form').remove();
       },400);
-    },
-    buildForm: function(todo) {
-      $('#form-content').html(this.generateFormTemplateHtml(todo));
-      $('form').find('input').focus();
-      this.setCompleteButton(todo);
-      this.generateDateOptions(todo);
     },
     setCompleteButton: function(todo) {
       let $button = $('#toggle-complete-button');
@@ -109,7 +122,7 @@ $(function() {
         $dueYear.append($option);
       });
     },
-    generateFormTemplateHtml: function(todo) {
+    generateTodoFormTemplateHtml: function(todo) {
       if (todo) {
         let editFormTemplate = Handlebars.compile($('#edit-todo-template').html());
         return editFormTemplate(todo);
@@ -144,14 +157,14 @@ $(function() {
       }
     },
     handleAddNewTodoClick: function(event) {
-      this.displayModal();
+      this.displayTodoModal();
     },
     handleTodoItemClick: function(event) {
       let $target = $(event.target);
       if ($target.hasClass('todo-title')) {
         let id = $target.data('todo-id');
         let todo = this.todos.get(id);
-        this.displayModal(todo);
+        this.displayTodoModal(todo);
       } else if ($target.hasClass('todo-item')) {
         this.handleToggleCompletedStatus(event);
       } else if ($target.hasClass('delete-icon')) {
@@ -200,7 +213,7 @@ $(function() {
       $('.completed-icon').attr('src', './img/completed-icon.png');
     },
 
-    bindModalEventHandlers: function() {
+    bindTodoModalEventHandlers: function() {
       $('form').submit(this.handleFormSubmission.bind(this));
       $('#toggle-complete-button').click(this.handleToggleCompletedStatus.bind(this));
       $('#modal').click(this.handleCloseModal.bind(this));
@@ -278,61 +291,26 @@ $(function() {
       xhr.open(method, url);
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.responseType = 'json';
-      xhr.addEventListener('load', function() {
-        switch(xhr.status) {
-          case 200:
-            this.todos.update(xhr.response);
-            break;
-          case 201:
-            this.todos.add(xhr.response);
-            break;
-          case 400:
-          case 404:
-            console.error(xhr.statusText);
-        }
-        this.hideModal();
-      }.bind(this));
+      xhr.addEventListener('load', this.handleServerResponse.bind(this));
       xhr.send(JSON.stringify(json));
     },
     sendRequestToggleCompletedStatusById(id) {
       let todo = this.todos.get(id);
-      let $form = $('form');
-      let json;
-      if ($form.get(0)) {
-        json = serializeFormToJson($form.get(0));
-      } else {
-        json = todo;
-      }
+      let form = $('form').get(0);
+      let json = form ? serializeFormToJson(form) : todo;
       json.completed = !todo.completed;
       let xhr = new XMLHttpRequest();
       xhr.open('put', `/api/todos/${id}`);
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.responseType = 'json';
-      xhr.addEventListener('load', function() {
-        switch(xhr.status) {
-          case 200:
-            this.todos.update(xhr.response);
-            break;
-          case 400:
-          case 404:
-            console.error(xhr.statusText);
-        }
-        this.hideModal();
-      }.bind(this));
+      xhr.addEventListener('load', this.handleServerResponse.bind(this));
       xhr.send(JSON.stringify(json));
     },
     sendRequestDeleteTodoById: function(id) {
       let xhr = new XMLHttpRequest();
       xhr.open('delete', `/api/todos/${id}`);
-      xhr.addEventListener('load', function() {
-        switch(xhr.status) {
-          case 204:
-            this.todos.delete(id);
-            break;
-          case 404:
-            console.error(xhr.statusText);
-        }
-      }.bind(this));
+      xhr.todoId = id;
+      xhr.addEventListener('load', this.handleServerResponse.bind(this));
       xhr.send();
     },
     sendRequestGetAllTodos: function() {
@@ -340,7 +318,11 @@ $(function() {
       xhr.open('get', '/api/todos');
       xhr.responseType = 'json';
       xhr.addEventListener('load', function() {
-        this.todos = new TodoManager(xhr.response);
+        if (xhr.status === 401) {
+          // display login modal
+        } else {
+          this.todos = new TodoManager(xhr.response);
+        }
       }.bind(this));
       xhr.send();
     },
@@ -349,13 +331,32 @@ $(function() {
       xhr.open('get', '/api/username');
       xhr.responseType = 'text';
       xhr.addEventListener('load', function() {
-        switch(xhr.status) {
-          case 200:
-            this.setUsername(xhr.response);
-            break;
+        if (xhr.status === 200) {
+          this.setUsername(xhr.response);
         }
       }.bind(this));
       xhr.send();
+    },
+    handleServerResponse: function(event) {
+      let xhr = event.currentTarget;
+      this.hideModal();
+      switch(xhr.status) {
+        case 200:
+          this.todos.update(xhr.response);
+          break;
+        case 201:
+          this.todos.add(xhr.response);
+          break;
+        case 204:
+          this.todos.delete(xhr.todoId);
+          break;
+        case 401:
+          // load login modal
+          break;
+        case 400:
+        case 404:
+          console.error(xhr.statusText);
+      }
     },
     init: function() {
       this.todos;
