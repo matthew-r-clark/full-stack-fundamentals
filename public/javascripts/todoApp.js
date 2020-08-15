@@ -36,9 +36,45 @@ $(function() {
     todoFlashMessage: '',
     loginFlashMessage: '',
 
+// General
     setUsername: function(username) {
       $('#username').text(username);
     },
+    reloadPageContent: function() {
+      this.sendRequestGetAllTodos();
+    },
+    setTodos: function(response) {
+      response = response || [];
+      if (this.todos) {
+        this.todos.updateList(response);
+      } else {
+        this.todos = new TodoManager(response);
+      }
+    },
+    setLoginFlashMessage: function(message) {
+      if (!message) {
+        message = '';
+      }
+      this.loginFlashMessage = message;
+    },
+    setTodoFlashMessage: function(message) {
+      if (!message) {
+        message = '';
+      }
+      this.todoFlashMessage = message;
+    },
+    setRefreshRate: function(seconds) {
+      setInterval(function() {
+        console.log('performing autorefresh');
+        if (!$('form').get(0)) {
+          this.reloadPageContent();
+        } else {
+          console.log('form found, skipping refresh');
+        }
+      }.bind(this), seconds * 1000);
+    },
+
+// Todo modal and form
     displayTodoModal: function(todo) {
       this.showTodoModal();
       this.buildTodoForm(todo);
@@ -61,73 +97,6 @@ $(function() {
       this.setCompleteButton(todo);
       this.generateDateOptions(todo);
       this.bindTodoModalEventHandlers();
-    },
-    displayLoginModal: function() {
-      this.showLoginModal();
-      this.buildLoginForm();
-    },
-    buildLoginForm: function() {
-      HandlebarsTemplates.loginForm();
-      this.bindLoginModalEventHandlers();
-      this.displayLoginFlashMessage();
-    },
-    bindLoginModalEventHandlers: function() {
-      $('#login-form').submit(this.handleSubmitLogin.bind(this));
-      $('#create-user-link').click(this.handleCreateUserClick.bind(this));
-    },
-    handleCreateUserClick: function(event) {
-      event.preventDefault();
-      let username = $('#username-field').val();
-      $('.user-form').remove();
-      this.buildCreateUserForm();
-      if (username) {
-        $('#username-field').val(username);
-        $('#password-field').focus();
-      }
-    },
-    displayCreateUserModal: function() {
-      this.showLoginModal();
-      this.buildCreateUserForm();
-    },
-    buildCreateUserForm: function() {
-      HandlebarsTemplates.createUserForm();
-      this.bindCreateUserModalEventHandlers();
-      this.displayLoginFlashMessage();
-    },
-    displayTodoFlashMessage: function() {
-      $('#todo-flash-message').text(this.todoFlashMessage);
-      this.todoFlashMessage = '';
-    },
-    displayLoginFlashMessage: function() {
-      $('#login-flash-message').text(this.loginFlashMessage);
-      this.loginFlashMessage = '';
-    },
-    bindCreateUserModalEventHandlers: function() {
-      $('#create-form').submit(this.handleSubmitCreateUserRequest.bind(this));
-      $('#login-link').click(this.handleExistingAccountClick.bind(this));
-    },
-    handleExistingAccountClick: function(event) {
-      event.preventDefault();
-      let username = $('#username-field').val();
-      $('.user-form').remove();
-      this.buildLoginForm();
-      if (username) {
-        $('#username-field').val(username);
-        $('#password-field').focus();
-      }
-    },
-    showLoginModal: function() {
-      let $modal = $('#login-modal');
-      $modal.fadeIn();
-    },
-    hideLoginModal: function() {
-      this.setLoginFlashMessage();
-      this.reloadPageContent();
-      let $modal = $('#login-modal');
-      $modal.fadeOut();
-      setTimeout(function() {
-        $('.user-form').remove();
-      },400);
     },
     setCompleteButton: function(todo) {
       let $button = $('#toggle-complete-button');
@@ -183,7 +152,66 @@ $(function() {
       });
     },
 
+// Login modal and form
+    displayLoginModal: function() {
+      this.showLoginModal();
+      this.buildLoginForm();
+    },
+    buildLoginForm: function() {
+      HandlebarsTemplates.loginForm();
+      this.bindLoginModalEventHandlers();
+      this.displayLoginFlashMessage();
+    },
+    bindLoginModalEventHandlers: function() {
+      $('#login-form').submit(this.handleSubmitLogin.bind(this));
+      $('#create-user-link').click(this.handleCreateUserClick.bind(this));
+    },
+    displayCreateUserModal: function() {
+      this.showLoginModal();
+      this.buildCreateUserForm();
+    },
+    buildCreateUserForm: function() {
+      HandlebarsTemplates.createUserForm();
+      this.bindCreateUserModalEventHandlers();
+      this.displayLoginFlashMessage();
+    },
+    displayTodoFlashMessage: function() {
+      $('#todo-flash-message').text(this.todoFlashMessage);
+      this.todoFlashMessage = '';
+    },
+    displayLoginFlashMessage: function() {
+      $('#login-flash-message').text(this.loginFlashMessage);
+      this.loginFlashMessage = '';
+    },
+    bindCreateUserModalEventHandlers: function() {
+      $('#create-form').submit(this.handleCreateUserFormSubmit.bind(this));
+      $('#login-link').click(this.handleExistingAccountClick.bind(this));
+    },
+    handleExistingAccountClick: function(event) {
+      event.preventDefault();
+      let username = $('#username-field').val();
+      $('.user-form').remove();
+      this.buildLoginForm();
+      if (username) {
+        $('#username-field').val(username);
+        $('#password-field').focus();
+      }
+    },
+    showLoginModal: function() {
+      let $modal = $('#login-modal');
+      $modal.fadeIn();
+    },
+    hideLoginModal: function() {
+      this.setLoginFlashMessage();
+      this.reloadPageContent();
+      let $modal = $('#login-modal');
+      $modal.fadeOut();
+      setTimeout(function() {
+        $('.user-form').remove();
+      },400);
+    },
 
+// Event handlers
     handleCloseModal: function(event) {
       if ($(event.target).hasClass('modal')) {
         this.hideTodoModal();
@@ -229,10 +257,19 @@ $(function() {
       event.preventDefault();
       this.sendLogoutRequest();
     },
-
-    reloadPageContent: function() {
-      this.sendRequestGetAllTodos();
-      // this.sendRequestForUsername();
+    handleCreateUserClick: function(event) {
+      event.preventDefault();
+      let username = $('#username-field').val();
+      $('.user-form').remove();
+      this.buildCreateUserForm();
+      if (username) {
+        $('#username-field').val(username);
+        $('#password-field').focus();
+      }
+    },
+    handleCreateUserFormSubmit: function(event) {
+      event.preventDefault();
+      this.sendCreateUserRequest.bind(this);
     },
     displayAllTodos: function() {
       this.todos.displayAllTodos();
@@ -260,7 +297,6 @@ $(function() {
         this.todos.displayCompletedTodosByGroup(group);
       }
     },
-
     setAllTodosHoverIcon: function(event) {
       $('.all-todos-icon').attr('src', './img/all-todos-hover-icon.png');
     },
@@ -273,17 +309,32 @@ $(function() {
     unsetCompletedHoverIcon: function(event) {
       $('.completed-icon').attr('src', './img/completed-icon.png');
     },
+    handleClearTodoFlashMessage: function() {
+      this.setTodoFlashMessage();
+      this.displayTodoFlashMessage();
+    },
+    handleSubmitLogin: function(event) {
+      event.preventDefault();
+      let $username = $('#username-field').get(0);
+      let $password = $('#password-field').get(0);
+      if (!$username.validity.valid) {
+        this.setLoginFlashMessage('Username field cannot be blank.');
+        this.displayLoginFlashMessage();
+      } else if (!$password.validity.valid) {
+        this.setLoginFlashMessage('Password field cannot be blank.');
+        this.displayLoginFlashMessage();
+      } else {
+        this.sendLoginRequest();
+      }
+    },
 
+// Bind elements and event listenrs
     bindTodoModalEventHandlers: function() {
       $('form').submit(this.handleFormSubmission.bind(this));
       $('#toggle-complete-button').click(this.handleToggleCompletedStatus.bind(this));
       $('#todo-modal').click(this.handleCloseModal.bind(this));
       this.bindTextareaListeners();
       $('input').on('focus', this.handleClearTodoFlashMessage.bind(this));
-    },
-    handleClearTodoFlashMessage: function() {
-      this.setTodoFlashMessage();
-      this.displayTodoFlashMessage();
     },
     bindTextareaListeners: function() {
       let shiftPressed = false;
@@ -326,8 +377,7 @@ $(function() {
       $('#logout-link').click(this.handleLogoutLinkClick.bind(this));
     },
 
-
-
+// Server requests
     sendRequestSubmitForm: function($form) {
       let json = serializeFormToJson($form.get(0));
       let method = $form.attr('method');
@@ -373,14 +423,6 @@ $(function() {
       }.bind(this));
       xhr.send();
     },
-    setTodos: function(response) {
-      response = response || [];
-      if (this.todos) {
-        this.todos.updateList(response);
-      } else {
-        this.todos = new TodoManager(response);
-      }
-    },
     sendRequestForUsername: function() {
       let xhr = new XMLHttpRequest();
       xhr.open('get', '/api/username');
@@ -406,42 +448,6 @@ $(function() {
         }
       }.bind(this));
       xhr.send();
-    },
-    handleServerResponse: function(event) {
-      let xhr = event.currentTarget;
-      this.hideTodoModal();
-      switch(xhr.status) {
-        case 200:
-          this.todos.update(xhr.response);
-          break;
-        case 201:
-          this.todos.add(xhr.response);
-          break;
-        case 204:
-          this.todos.delete(xhr.todoId);
-          break;
-        case 401:
-          this.setLoginFlashMessage(xhr.status);
-          this.displayLoginModal();
-          break;
-        case 400:
-        case 404:
-          console.error(xhr.statusText);
-      }
-    },
-    handleSubmitLogin: function(event) {
-      event.preventDefault();
-      let $username = $('#username-field').get(0);
-      let $password = $('#password-field').get(0);
-      if (!$username.validity.valid) {
-        this.setLoginFlashMessage('Username field cannot be blank.');
-        this.displayLoginFlashMessage();
-      } else if (!$password.validity.valid) {
-        this.setLoginFlashMessage('Password field cannot be blank.');
-        this.displayLoginFlashMessage();
-      } else {
-        this.sendLoginRequest();
-      }
     },
     sendLoginRequest: function() {
       let $loginForm = $('#login-form');
@@ -469,8 +475,7 @@ $(function() {
       }.bind(this));
       xhr.send(JSON.stringify(json));
     },
-    handleSubmitCreateUserRequest: function(event) {
-      event.preventDefault();
+    sendCreateUserRequest: function() {
       let $createForm = $('#create-form');
       let json = serializeFormToJson($createForm.get(0));
       let method = $createForm.attr('method');
@@ -492,28 +497,29 @@ $(function() {
       }.bind(this));
       xhr.send(JSON.stringify(json));
     },
-    setLoginFlashMessage: function(message) {
-      if (!message) {
-        message = '';
+    handleServerResponse: function(event) {
+      let xhr = event.currentTarget;
+      this.hideTodoModal();
+      switch(xhr.status) {
+        case 200:
+          this.todos.update(xhr.response);
+          break;
+        case 201:
+          this.todos.add(xhr.response);
+          break;
+        case 204:
+          this.todos.delete(xhr.todoId);
+          break;
+        case 401:
+          this.setLoginFlashMessage(xhr.status);
+          this.displayLoginModal();
+          break;
+        case 400:
+        case 404:
+          console.error(xhr.statusText);
       }
-      this.loginFlashMessage = message;
     },
-    setTodoFlashMessage: function(message) {
-      if (!message) {
-        message = '';
-      }
-      this.todoFlashMessage = message;
-    },
-    setRefreshRate: function(seconds) {
-      setInterval(function() {
-        console.log('performing autorefresh');
-        if (!$('form').get(0)) {
-          this.reloadPageContent();
-        } else {
-          console.log('form found, skipping refresh');
-        }
-      }.bind(this), seconds * 1000);
-    },
+    
     init: function() {
       this.todos;
       this.sendRequestForUsername();
