@@ -57,7 +57,7 @@ $(function() {
       },400);
     },
     buildTodoForm: function(todo) {
-      this.generateTodoFormTemplateHtml(todo);
+      HandlebarsTemplates.todoForm(todo);
       this.setCompleteButton(todo);
       this.generateDateOptions(todo);
       this.bindTodoModalEventHandlers();
@@ -67,7 +67,7 @@ $(function() {
       this.buildLoginForm();
     },
     buildLoginForm: function() {
-      this.generateLoginFormTemplateHtml();
+      HandlebarsTemplates.loginForm();
       this.bindLoginModalEventHandlers();
       this.displayLoginFlashMessage();
     },
@@ -90,7 +90,7 @@ $(function() {
       this.buildCreateUserForm();
     },
     buildCreateUserForm: function() {
-      this.generateCreateUserFormTemplateHtml();
+      HandlebarsTemplates.createUserForm();
       this.bindCreateUserModalEventHandlers();
       this.displayLoginFlashMessage();
     },
@@ -182,27 +182,7 @@ $(function() {
         $dueYear.append($option);
       });
     },
-    generateTodoFormTemplateHtml: function(todo) {
-      let $formContainer = $('#todo-form-container');
-      if (todo) {
-        let editFormTemplate = Handlebars.compile($('#edit-todo-template').html());
-        $formContainer.html(editFormTemplate(todo));
-      } else {
-        let addFormTemplate = Handlebars.compile($('#add-todo-template').html());
-        $formContainer.html(addFormTemplate());
-      }
-      $('#form-title').focus();
-    },
-    generateLoginFormTemplateHtml: function() {
-      let loginFormTemplate = Handlebars.compile($('#login-template').html());
-      $('#login-form-container').html(loginFormTemplate());
-      $('#username-field').focus();
-    },
-    generateCreateUserFormTemplateHtml: function() {
-      let createUserFormTemplate = Handlebars.compile($('#create-user-template').html());
-      $('#login-form-container').html(createUserFormTemplate());
-      $('#username-field').focus();
-    },
+
 
     handleCloseModal: function(event) {
       if ($(event.target).hasClass('modal')) {
@@ -299,10 +279,11 @@ $(function() {
       $('#toggle-complete-button').click(this.handleToggleCompletedStatus.bind(this));
       $('#todo-modal').click(this.handleCloseModal.bind(this));
       this.bindTextareaListeners();
-      $('input').on('focus', function() {
-        this.setTodoFlashMessage();
-        this.displayTodoFlashMessage();
-      }.bind(this));
+      $('input').on('focus', this.handleClearTodoFlashMessage.bind(this));
+    },
+    handleClearTodoFlashMessage: function() {
+      this.setTodoFlashMessage();
+      this.displayTodoFlashMessage();
     },
     bindTextareaListeners: function() {
       let shiftPressed = false;
@@ -345,30 +326,7 @@ $(function() {
       $('#logout-link').click(this.handleLogoutLinkClick.bind(this));
     },
 
-    createHandlebarsHelpers: function() {
-      this.registerHandlebarsDateHelper();
-      this.registerHandlebarsTodoItemHelper();
-      this.registerHandlebarsFormFieldsHelper();
-    },
-    registerHandlebarsDateHelper: function() {
-      Handlebars.registerHelper("date", function() {
-        return TodoManager.prototype.getDueMonthForTodo(this);
-      });
-    },
-    registerHandlebarsTodoItemHelper: function() {
-      Handlebars.registerHelper("todoItem", function() {
-        let todoItemTemplate = Handlebars.compile($('#todo-item-template').html());
-        let html = todoItemTemplate(this);
-        return html;
-      });
-    },
-    registerHandlebarsFormFieldsHelper: function() {
-      Handlebars.registerHelper("formFields", function() {
-        let formFieldsTemplate = Handlebars.compile($('#form-fields-template').html());
-        let html = formFieldsTemplate(this);
-        return html;
-      });
-    },
+
 
     sendRequestSubmitForm: function($form) {
       let json = serializeFormToJson($form.get(0));
@@ -562,7 +520,7 @@ $(function() {
       this.sendRequestGetAllTodos();
       this.bindElements();
       this.bindEventHandlers();
-      this.createHandlebarsHelpers();
+      HandlebarsHelpers.register();
       this.setRefreshRate(REFRESH_RATE_IN_SECONDS);
     }
   };
