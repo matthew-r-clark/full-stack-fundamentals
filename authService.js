@@ -32,17 +32,7 @@ Auth.prototype.init = function(req, res, next) {
 
 Auth.prototype.guard = function(req, res, next) {
   if (!req.session.user || !req.session.user.authorized) {
-    console.log('redirecting to login from Auth.guard()');
-    res.redirect('/login');
-  } else {
-    next();
-  }
-}
-
-Auth.prototype.allow = function(req, res, next) {
-  if (req.session.user && req.session.user.authorized) {
-    console.log('redirecting to root from Auth.allow()');
-    res.redirect('/');
+    res.status(401).send('You are not logged in.');
   } else {
     next();
   }

@@ -75,28 +75,13 @@ function userAlreadyExists(err) {
 }
 
 // ROUTES
-app.get('/', Auth.guard, function(req, res) {
+app.get('/', function(req, res) {
   res.status(200);
   res.sendFile('./public/views/index.html', { root: __dirname });
 });
 
-app.get('/login', Auth.allow, function(req, res) {
-  res.status(200);
-  res.sendFile('./public/views/login.html', { root: __dirname });
-});
-
 app.post('/login', Auth.authorize, function(req, res) {
   res.sendStatus(200);
-});
-
-app.get('/logout', function(req, res) {
-  req.logout();
-  res.redirect('/login');
-});
-
-app.get('/create_user', Auth.allow, function(req, res) {
-  res.status(200);
-  res.sendFile('./public/views/createUser.html', { root: __dirname });
 });
 
 app.post('/create_user', async function(req, res, next) {
@@ -114,6 +99,13 @@ app.post('/create_user', async function(req, res, next) {
       handleError(err);
     }
   }
+});
+
+app.use(Auth.guard);
+
+app.post('/logout', function(req, res) {
+  req.logout();
+  res.status(202).send('You have been logged out.');
 });
 
 app.get('/api/username', function(req, res) {

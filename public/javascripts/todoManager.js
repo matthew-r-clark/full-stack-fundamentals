@@ -45,6 +45,11 @@ TodoManager.prototype.delete = function(id) {
   this.displayTodos();
 }
 
+TodoManager.prototype.updateList = function(list) {
+  this.list = list;
+  this.displayTodos();
+}
+
 TodoManager.prototype.get = function(id) {
   return this.list.filter(t => String(t.id) === String(id))[0];
 }
