@@ -72,7 +72,7 @@ $(function() {
       this.displayLoginFlashMessage();
     },
     bindLoginModalEventHandlers: function() {
-      $('#login-form').submit(this.handleSubmitLoginRequest.bind(this));
+      $('#login-form').submit(this.handleSubmitLogin.bind(this));
       $('#create-user-link').click(this.handleCreateUserClick.bind(this));
     },
     handleCreateUserClick: function(event) {
@@ -82,6 +82,7 @@ $(function() {
       this.buildCreateUserForm();
       if (username) {
         $('#username-field').val(username);
+        $('#password-field').focus();
       }
     },
     displayCreateUserModal: function() {
@@ -112,6 +113,7 @@ $(function() {
       this.buildLoginForm();
       if (username) {
         $('#username-field').val(username);
+        $('#password-field').focus();
       }
     },
     showLoginModal: function() {
@@ -469,8 +471,21 @@ $(function() {
           console.error(xhr.statusText);
       }
     },
-    handleSubmitLoginRequest: function(event) {
+    handleSubmitLogin: function(event) {
       event.preventDefault();
+      let $username = $('#username-field').get(0);
+      let $password = $('#password-field').get(0);
+      if (!$username.validity.valid) {
+        this.setLoginFlashMessage('Username field cannot be blank.');
+        this.displayLoginFlashMessage();
+      } else if (!$password.validity.valid) {
+        this.setLoginFlashMessage('Password field cannot be blank.');
+        this.displayLoginFlashMessage();
+      } else {
+        this.sendLoginRequest();
+      }
+    },
+    sendLoginRequest: function() {
       let $loginForm = $('#login-form');
       let json = serializeFormToJson($loginForm.get(0));
       let method = $loginForm.attr('method');

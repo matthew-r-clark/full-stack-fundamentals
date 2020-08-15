@@ -192,7 +192,7 @@
   </script>
 
   <script id="login-template" type="text/x-handlebars">
-    <form id="login-form" class="user-form" method="post" action="/login">
+    <form id="login-form" class="user-form" method="post" action="/login" novalidate>
       <p id="login-flash-message"></p>
       <div class="space-between">
         <label for="username">Username:</label>
@@ -200,7 +200,7 @@
       </div>
       <div class="space-between">
         <label for="password">Password:</label>
-        <input type="password" name="password" required>
+        <input id="password-field" type="password" name="password" required>
       </div>
       <div class="space-between">
         <button id="login-button" type="submit">Log In</button>
@@ -210,7 +210,7 @@
   </script>
 
   <script id="create-user-template" type="text/x-handlebars">
-    <form id="create-form" class="user-form" method="post" action="/create_user">
+    <form id="create-form" class="user-form" method="post" action="/create_user" novalidate>
       <p id="login-flash-message"></p>
       <div class="space-between">
         <label for="username">Username:</label>
@@ -218,7 +218,7 @@
       </div>
       <div class="space-between">
         <label for="password">Password:</label>
-        <input type="password" name="password" required>
+        <input id="password-field" type="password" name="password" required>
       </div>
       <div class="space-between">
         <button id="create-button" type="submit">Create</button>
