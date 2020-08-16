@@ -165,6 +165,12 @@ $(function() {
     bindLoginModalEventHandlers: function() {
       $('#login-form').submit(this.handleSubmitLogin.bind(this));
       $('#create-user-link').click(this.handleCreateUserClick.bind(this));
+      this.bindValidationFlashMessageHandlers();
+    },
+    bindValidationFlashMessageHandlers: function() {
+      $('input').focus(this.handleClearLoginFlashMessage.bind(this));
+      $('#username-field').blur(this.handleValidateUsername.bind(this));
+      $('#password-field').blur(this.handleValidatePassword.bind(this));
     },
     displayCreateUserModal: function() {
       this.showLoginModal();
@@ -186,6 +192,7 @@ $(function() {
     bindCreateUserModalEventHandlers: function() {
       $('#create-form').submit(this.handleSubmitCreateUserForm.bind(this));
       $('#login-link').click(this.handleExistingAccountClick.bind(this));
+      this.bindValidationFlashMessageHandlers();
     },
     handleExistingAccountClick: function(event) {
       event.preventDefault();
@@ -276,12 +283,12 @@ $(function() {
     },
     handleSubmitLogin: function(event) {
       event.preventDefault();
-      let $username = $('#username-field').get(0);
-      let $password = $('#password-field').get(0);
-      if (!$username.validity.valid) {
+      let username = $('#username-field').get(0);
+      let password = $('#password-field').get(0);
+      if (!username.validity.valid) {
         this.setLoginFlashMessage('Username field cannot be blank.');
         this.displayLoginFlashMessage();
-      } else if (!$password.validity.valid) {
+      } else if (!password.validity.valid) {
         this.setLoginFlashMessage('Password field cannot be blank.');
         this.displayLoginFlashMessage();
       } else {
@@ -290,12 +297,12 @@ $(function() {
     },
     handleSubmitCreateUserForm: function(event) {
       event.preventDefault();
-      let $username = $('#username-field').get(0);
-      let $password = $('#password-field').get(0);
-      if (!$username.validity.valid) {
+      let username = $('#username-field').get(0);
+      let password = $('#password-field').get(0);
+      if (!username.validity.valid) {
         this.setLoginFlashMessage('Username field cannot be blank.');
         this.displayLoginFlashMessage();
-      } else if (!$password.validity.valid) {
+      } else if (!password.validity.valid) {
         this.setLoginFlashMessage('Password field cannot be blank.');
         this.displayLoginFlashMessage();
       } else {
@@ -344,6 +351,24 @@ $(function() {
       this.setTodoFlashMessage();
       this.displayTodoFlashMessage();
     },
+    handleClearLoginFlashMessage: function() {
+      this.setLoginFlashMessage();
+      this.displayLoginFlashMessage();
+    },
+    handleValidateUsername: function(event) {
+      let username = event.target;
+      if (!username.validity.valid) {
+        this.setLoginFlashMessage('Username field cannot be blank.');
+        this.displayLoginFlashMessage();
+      }
+    },
+    handleValidatePassword: function(event) {
+      let password = event.target;
+      if (!password.validity.valid) {
+        this.setLoginFlashMessage('Password field cannot be blank.');
+        this.displayLoginFlashMessage();
+      }
+    },
 
 // Bind elements and event listenrs
     bindTodoModalEventHandlers: function() {
@@ -351,8 +376,8 @@ $(function() {
       $('#toggle-complete-button').click(this.handleToggleCompletedStatus.bind(this));
       $('#todo-modal').click(this.handleCloseModal.bind(this));
       this.bindTextareaListeners();
-      $('input').on('blur', this.handleValidateTodoTitleOnBlur.bind(this));
-      $('input').on('focus', this.handleClearTodoFlashMessage.bind(this));
+      $('input').blur(this.handleValidateTodoTitleOnBlur.bind(this));
+      $('input').focus(this.handleClearTodoFlashMessage.bind(this));
     },
     bindTextareaListeners: function() {
       let shiftPressed = false;
