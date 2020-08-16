@@ -1,5 +1,24 @@
 # Todo Manager
 
-This is a simple todo app created using nothing more than jQuery on the front-end and Express.js on the backend.
+This is a simple todo SPA meant to demonstrate my understanding of full-stack fundamentals.
 
-My goal was to create a simple full-stack application without any frameworks. Eventually I would like to replace all npm modules with my own code.
+Features:
+- Private lists via user accounts.
+- Create, edit, and delete todo items.
+- Todos are categorized by *completed status* and *due month* in navigation menu.
+- Clicking on a category displays appropriate todos in main display.
+
+Frontend:
+- No frameworks, mostly vanilla JavaScript and browser APIs.
+- jQuery for simplified DOM manipulation.
+- [Handlebars](https://handlebarsjs.com/) template engine for building forms.
+- Custom form validation with descriptive flash messages.
+
+Backend:
+- Node, using Express.
+- Custom authorization service, implemented as a middleware with Express.
+- Sessions managed via [express-session](https://www.npmjs.com/package/express-session).
+- PosgreSQL storage via [pg-promise](https://www.npmjs.com/package/pg-promise).
+- Passwords hashed via [bcrypt](https://www.npmjs.com/package/bcrypt).
+
+~ Hosted on Heroku, deployed through GitHub.
