@@ -101,12 +101,16 @@ app.post('/create_user', async function(req, res, next) {
   }
 });
 
-app.use(Auth.guard);
-
 app.post('/logout', function(req, res) {
-  req.logout();
-  res.status(202).send('You have been logged out.');
+  if (req.isAuthorized) {
+    req.logout();
+    res.status(202).send('You have been logged out.');
+  } else {
+    res.sendStatus(401);
+  }
 });
+
+app.use(Auth.guard);
 
 app.get('/api/username', function(req, res) {
   let user = req.session.user;
@@ -166,7 +170,7 @@ app.delete('/api/todos/:id', async function(req, res) {
   let todo = await Todo.getTodoById(id);
   if (todo) {
     await Todo.deleteTodo(id);
-    res.sendStatus(204);
+    res.status(204).send(id);
   } else {
     res.status(404);
     res.send('The todo could not be found.');

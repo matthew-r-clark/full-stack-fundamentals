@@ -43,12 +43,12 @@ $(function() {
     reloadPageContent: function() {
       this.sendRequestGetAllTodos();
     },
-    setTodos: function(response) {
-      response = response || [];
+    setTodos: function(list) {
+      list = list || [];
       if (this.todos) {
-        this.todos.updateList(response);
+        this.todos.updateList(list);
       } else {
-        this.todos = new TodoManager(response);
+        this.todos = new TodoManager(list);
       }
     },
     setLoginFlashMessage: function(message) {
@@ -184,7 +184,7 @@ $(function() {
       this.loginFlashMessage = '';
     },
     bindCreateUserModalEventHandlers: function() {
-      $('#create-form').submit(this.handleCreateUserFormSubmit.bind(this));
+      $('#create-form').submit(this.handleSubmitCreateUserForm.bind(this));
       $('#login-link').click(this.handleExistingAccountClick.bind(this));
     },
     handleExistingAccountClick: function(event) {
@@ -215,6 +215,13 @@ $(function() {
     handleCloseModal: function(event) {
       if ($(event.target).hasClass('modal')) {
         this.hideTodoModal();
+      }
+    },
+    handleValidateTodoTitleOnBlur: function(event) {
+      let todoTitle = event.target;
+      if (!todoTitle.validity.valid) {
+        this.setTodoFlashMessage('You must enter a title at least 3 characters long.');
+        this.displayTodoFlashMessage();
       }
     },
     handleFormSubmission: function(event) {
@@ -267,9 +274,33 @@ $(function() {
         $('#password-field').focus();
       }
     },
-    handleCreateUserFormSubmit: function(event) {
+    handleSubmitLogin: function(event) {
       event.preventDefault();
-      this.sendCreateUserRequest.bind(this);
+      let $username = $('#username-field').get(0);
+      let $password = $('#password-field').get(0);
+      if (!$username.validity.valid) {
+        this.setLoginFlashMessage('Username field cannot be blank.');
+        this.displayLoginFlashMessage();
+      } else if (!$password.validity.valid) {
+        this.setLoginFlashMessage('Password field cannot be blank.');
+        this.displayLoginFlashMessage();
+      } else {
+        this.sendLoginRequest();
+      }
+    },
+    handleSubmitCreateUserForm: function(event) {
+      event.preventDefault();
+      let $username = $('#username-field').get(0);
+      let $password = $('#password-field').get(0);
+      if (!$username.validity.valid) {
+        this.setLoginFlashMessage('Username field cannot be blank.');
+        this.displayLoginFlashMessage();
+      } else if (!$password.validity.valid) {
+        this.setLoginFlashMessage('Password field cannot be blank.');
+        this.displayLoginFlashMessage();
+      } else {
+        this.sendCreateUserRequest.call(this);
+      }
     },
     displayAllTodos: function() {
       this.todos.displayAllTodos();
@@ -313,20 +344,6 @@ $(function() {
       this.setTodoFlashMessage();
       this.displayTodoFlashMessage();
     },
-    handleSubmitLogin: function(event) {
-      event.preventDefault();
-      let $username = $('#username-field').get(0);
-      let $password = $('#password-field').get(0);
-      if (!$username.validity.valid) {
-        this.setLoginFlashMessage('Username field cannot be blank.');
-        this.displayLoginFlashMessage();
-      } else if (!$password.validity.valid) {
-        this.setLoginFlashMessage('Password field cannot be blank.');
-        this.displayLoginFlashMessage();
-      } else {
-        this.sendLoginRequest();
-      }
-    },
 
 // Bind elements and event listenrs
     bindTodoModalEventHandlers: function() {
@@ -334,6 +351,7 @@ $(function() {
       $('#toggle-complete-button').click(this.handleToggleCompletedStatus.bind(this));
       $('#todo-modal').click(this.handleCloseModal.bind(this));
       this.bindTextareaListeners();
+      $('input').on('blur', this.handleValidateTodoTitleOnBlur.bind(this));
       $('input').on('focus', this.handleClearTodoFlashMessage.bind(this));
     },
     bindTextareaListeners: function() {
@@ -378,145 +396,130 @@ $(function() {
     },
 
 // Server requests
-    sendRequestSubmitForm: function($form) {
+    sendRequestSubmitForm: async function($form) {
       let json = serializeFormToJson($form.get(0));
       let method = $form.attr('method');
       let url = $form.attr('action');
-      let xhr = new XMLHttpRequest();
-      xhr.open(method, url);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.responseType = 'json';
-      xhr.addEventListener('load', this.handleServerResponse.bind(this));
-      xhr.send(JSON.stringify(json));
+
+      let response = await fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(json),
+      });
+      this.handleTodosResponse(response);
     },
-    sendRequestToggleCompletedStatusById(id) {
+    sendRequestToggleCompletedStatusById: async function(id) {
       let todo = this.todos.get(id);
-      let form = $('form').get(0);
+      let form = $('#todo-form').get(0);
       let json = form ? serializeFormToJson(form) : todo;
       json.completed = !todo.completed;
-      let xhr = new XMLHttpRequest();
-      xhr.open('put', `/api/todos/${id}`);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.responseType = 'json';
-      xhr.addEventListener('load', this.handleServerResponse.bind(this));
-      xhr.send(JSON.stringify(json));
+
+      let response = await fetch(`/api/todos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(json),
+      });
+      this.handleTodosResponse(response);
     },
-    sendRequestDeleteTodoById: function(id) {
-      let xhr = new XMLHttpRequest();
-      xhr.open('delete', `/api/todos/${id}`);
-      xhr.todoId = id;
-      xhr.addEventListener('load', this.handleServerResponse.bind(this));
-      xhr.send();
+    sendRequestDeleteTodoById: async function(id) {
+      let response = await fetch(`/api/todos/${id}`, { method: 'DELETE' });
+      this.handleTodosResponse(response);
     },
-    sendRequestGetAllTodos: function() {
-      let xhr = new XMLHttpRequest();
-      xhr.open('get', '/api/todos');
-      xhr.responseType = 'json';
-      xhr.addEventListener('load', function() {
-        if (xhr.status === 401) {
-          this.setLoginFlashMessage('You are not logged in.');
-          this.displayLoginModal();
-          this.setTodos();
-        } else {
-          this.setTodos(xhr.response);
-        }
-      }.bind(this));
-      xhr.send();
+    sendRequestGetAllTodos: async function() {
+      let response = await fetch('/api/todos');
+      if (response.status === 200) {
+        this.setTodos(await response.json());
+      } else {
+        this.handleLoginResponse(response);
+      }
     },
-    sendRequestForUsername: function() {
-      let xhr = new XMLHttpRequest();
-      xhr.open('get', '/api/username');
-      xhr.responseType = 'text';
-      xhr.addEventListener('load', function() {
-        if (xhr.status === 200) {
-          this.setUsername(xhr.response);
-        } else if (xhr.status === 401) {
-          this.setLoginFlashMessage(xhr.response);
-          this.displayLoginModal();
-        }
-      }.bind(this));
-      xhr.send();
+    sendRequestForUsername: async function() {
+      let response = await fetch('/api/username');
+      if (response.status === 200) {
+        this.setUsername(await response.text());
+      } else {
+        this.handleLoginResponse(response);
+      }
     },
-    sendLogoutRequest: function() {
-      let xhr = new XMLHttpRequest();
-      xhr.open('post', '/logout');
-      xhr.resposeType = 'text';
-      xhr.addEventListener('load', function() {
-        if (xhr.status === 202) {
-          this.setLoginFlashMessage(xhr.response);
-          this.displayLoginModal();
-        }
-      }.bind(this));
-      xhr.send();
+    sendLogoutRequest: async function() {
+      let response = await fetch('/logout', { method: 'POST' });
+      this.handleLogoutResponse(response);
     },
-    sendLoginRequest: function() {
+    sendLoginRequest: async function() {
       let $loginForm = $('#login-form');
       let json = serializeFormToJson($loginForm.get(0));
       let method = $loginForm.attr('method');
       let url = $loginForm.attr('action');
-  
-      let xhr = new XMLHttpRequest();
-      xhr.open(method, url);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.addEventListener('load', function() {
-        switch(xhr.status) {
-          case 200:
-            this.hideLoginModal();
-            break;
-          case 401:
-            this.setLoginFlashMessage(xhr.response);
-            this.displayLoginFlashMessage();
-            break;
-          case 404:
-            this.setLoginFlashMessage(xhr.response);
-            this.displayLoginFlashMessage();
-            break;
-        }
-      }.bind(this));
-      xhr.send(JSON.stringify(json));
+
+      let response = await fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(json),
+      });
+      this.handleLoginResponse(response);
     },
-    sendCreateUserRequest: function() {
+    sendCreateUserRequest: async function() {
       let $createForm = $('#create-form');
       let json = serializeFormToJson($createForm.get(0));
       let method = $createForm.attr('method');
       let url = $createForm.attr('action');
-  
-      let xhr = new XMLHttpRequest();
-      xhr.open(method, url);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.addEventListener('load', function() {
-        switch(xhr.status) {
-          case 200:
-            this.hideLoginModal();
-            break;
-          case 400:
-            this.setLoginFlashMessage(xhr.response);
-            this.displayLoginFlashMessage();
-            break;
-        }
-      }.bind(this));
-      xhr.send(JSON.stringify(json));
+
+      let response = await fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(json),
+      });
+      this.handleLoginResponse(response);
     },
-    handleServerResponse: function(event) {
-      let xhr = event.currentTarget;
+    handleTodosResponse: async function(response) {
       this.hideTodoModal();
-      switch(xhr.status) {
+      switch(response.status) {
         case 200:
-          this.todos.update(xhr.response);
+          this.todos.update(await response.json());
           break;
         case 201:
-          this.todos.add(xhr.response);
+          this.todos.add(await response.json());
           break;
         case 204:
-          this.todos.delete(xhr.todoId);
+          this.todos.delete(await response.text());
           break;
         case 401:
-          this.setLoginFlashMessage(xhr.status);
+          this.setLoginFlashMessage(await response.text());
           this.displayLoginModal();
           break;
+        default:
+          console.error(response.status, response.statusText);
+      }
+    },
+    handleLoginResponse: async function(response) {
+      switch(response.status) {
+        case 200:
+          this.hideLoginModal();
+          this.sendRequestForUsername();
+          break;
+        case 202:
         case 400:
+        case 401:
         case 404:
-          console.error(xhr.statusText);
+          this.setLoginFlashMessage(await response.text());
+          if ($('form').get(0)) {
+            this.displayLoginFlashMessage();
+          } else {
+            this.displayLoginModal();
+          }
+        default:
+          console.error(response.status, response.statusText);
+      }
+    },
+    handleLogoutResponse: async function(response) {
+      switch(response.status) {
+        case 202:
+        case 401:
+          this.setLoginFlashMessage(await response.text());
+          this.displayLoginModal();
+          break;
+        default:
+          console.error(response.status, response.statusText);
       }
     },
     
