@@ -2,10 +2,6 @@ const { User } = require('./database');
 const bcrypt = require('bcrypt');
 const saltRounds = Number(process.env.SALT_ROUNDS);
 
-function handleError(error) {
-  console.error(error);
-}
-
 function validatePassword(password, hash) {
   return bcrypt.compare(password, hash);
 }
@@ -60,7 +56,6 @@ Auth.prototype.authorize = async function(req, res, next) {
 
 
 Auth.prototype.generateHash = function(password) {
-  // bcrypt.hash(password, saltRounds, callback);
   return bcrypt.hash(password, saltRounds);
 }
 
