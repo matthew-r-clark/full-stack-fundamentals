@@ -170,8 +170,6 @@ app.delete('/api/todos/:id', async function(req, res) {
   let todo = await Todo.getTodoById(id);
   if (todo) {
     await Todo.deleteTodo(id);
-    console.log('id being sent from server:');
-    console.log(id);
     res.sendStatus(204);
   } else {
     res.status(404);

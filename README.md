@@ -22,3 +22,4 @@ Backend:
 - Passwords hashed via [bcrypt](https://www.npmjs.com/package/bcrypt).
 
 ~ Hosted on Heroku, deployed through GitHub.
+Checkout the [live app](http://mclark-todo-app.herokuapp.com).
