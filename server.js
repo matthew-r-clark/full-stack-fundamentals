@@ -170,7 +170,9 @@ app.delete('/api/todos/:id', async function(req, res) {
   let todo = await Todo.getTodoById(id);
   if (todo) {
     await Todo.deleteTodo(id);
-    res.status(204).send(id);
+    console.log('id being sent from server:');
+    console.log(id);
+    res.sendStatus(204);
   } else {
     res.status(404);
     res.send('The todo could not be found.');

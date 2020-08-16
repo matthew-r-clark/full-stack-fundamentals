@@ -53,8 +53,6 @@ Auth.prototype.authorize = async function(req, res, next) {
   }
 }
 
-
-
 Auth.prototype.generateHash = function(password) {
   return bcrypt.hash(password, saltRounds);
 }

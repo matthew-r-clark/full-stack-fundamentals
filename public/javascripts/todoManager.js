@@ -40,9 +40,13 @@ TodoManager.prototype.update = function(todo) {
 
 TodoManager.prototype.delete = function(id) {
   let todo = this.get(id);
-  let index = this.list.indexOf(todo);
-  this.list.splice(index, 1);
-  this.displayTodos();
+  if (todo) {
+    let index = this.list.indexOf(todo);
+    this.list.splice(index, 1);
+    this.displayTodos();
+  } else {
+    console.error('Error when deleting todo.')
+  }
 }
 
 TodoManager.prototype.updateList = function(list) {

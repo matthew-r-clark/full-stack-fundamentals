@@ -31,6 +31,12 @@ function serializeFormToJson(form) {
   return serializedData;
 }
 
+if (!Array.prototype.last) {
+  Array.prototype.last = function() {
+    return this[this.length - 1];
+  }
+}
+
 $(function() {
   const App = {
     todoFlashMessage: '',
@@ -65,13 +71,15 @@ $(function() {
     },
     setRefreshRate: function(seconds) {
       setInterval(function() {
-        console.log('performing autorefresh');
         if (!$('form').get(0)) {
           this.reloadPageContent();
         } else {
-          console.log('form found, skipping refresh');
+          console.log('login form detected, skipping autorefresh');
         }
       }.bind(this), seconds * 1000);
+    },
+    extractIdFromUrl: function(url) {
+      return url.split('/').last();
     },
 
 // Todo modal and form
@@ -498,53 +506,66 @@ $(function() {
     },
     handleTodosResponse: async function(response) {
       this.hideTodoModal();
-      switch(response.status) {
-        case 200:
-          this.todos.update(await response.json());
-          break;
-        case 201:
-          this.todos.add(await response.json());
-          break;
-        case 204:
-          this.todos.delete(await response.text());
-          break;
-        case 401:
-          this.setLoginFlashMessage(await response.text());
-          this.displayLoginModal();
-          break;
-        default:
-          console.error(response.status, response.statusText);
+      try {
+        switch(response.status) {
+          case 200:
+            this.todos.update(await response.json());
+            break;
+          case 201:
+            this.todos.add(await response.json());
+            break;
+          case 204:
+            let id = this.extractIdFromUrl(response.url);
+            this.todos.delete(id);
+            break;
+          case 401:
+            this.setLoginFlashMessage(await response.text());
+            this.displayLoginModal();
+            break;
+          default:
+            console.error(response.status, response.statusText);
+        }
+      } catch(err) {
+        console.error(err);
       }
     },
     handleLoginResponse: async function(response) {
-      switch(response.status) {
-        case 200:
-          this.hideLoginModal();
-          this.sendRequestForUsername();
-          break;
-        case 202:
-        case 400:
-        case 401:
-        case 404:
-          this.setLoginFlashMessage(await response.text());
-          if ($('form').get(0)) {
-            this.displayLoginFlashMessage();
-          } else {
-            this.displayLoginModal();
-          }
-        default:
-          console.error(response.status, response.statusText);
+      try {
+        switch(response.status) {
+          case 200:
+            this.hideLoginModal();
+            this.sendRequestForUsername();
+            break;
+          case 202:
+          case 400:
+          case 401:
+          case 404:
+            this.setLoginFlashMessage(await response.text());
+            if ($('form').get(0)) {
+              this.displayLoginFlashMessage();
+            } else {
+              this.displayLoginModal();
+            }
+          default:
+            console.error(response.status, response.statusText);
+        }
+      } catch(err) {
+        console.error(err);
       }
     },
     handleLogoutResponse: async function(response) {
-      switch(response.status) {
-        case 202:
-        case 401:
-          this.setLoginFlashMessage(await response.text());
-          this.displayLoginModal();
-          break;
-        default:
-          console.error(response.status, response.statusText);
+      try {
+        switch(response.status) {
+          case 202:
+          case 401:
+            this.setLoginFlashMessage(await response.text());
+            this.displayLoginModal();
+            break;
+          default:
+            console.error(response.status, response.statusText);
+        }
+      } catch(err) {
+        console.error(err);
       }
     },
     
