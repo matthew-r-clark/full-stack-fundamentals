@@ -21,5 +21,5 @@ Backend:
 - PosgreSQL storage via [pg-promise](https://www.npmjs.com/package/pg-promise).
 - Passwords hashed via [bcrypt](https://www.npmjs.com/package/bcrypt).
 
-~ Hosted on Heroku, deployed through GitHub.
+~ Hosted on Heroku, deployed via GitHub.
 Checkout the [live app](http://mclark-todo-app.herokuapp.com).
