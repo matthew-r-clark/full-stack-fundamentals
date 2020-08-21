@@ -257,6 +257,7 @@ $(function() {
         this.sendRequestToggleCompletedStatusById(id);
       } else {
         this.setTodoFlashMessage('Cannot mark as completed until item is created.');
+        this.displayTodoFlashMessage();
       }
     },
     handleAddNewTodoClick: function(event) {
