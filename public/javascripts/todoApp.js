@@ -431,6 +431,7 @@ $(function() {
 
 // Server requests
     sendRequestSubmitForm: async function($form) {
+      $form.find('button').attr('disabled', true);
       let json = serializeFormToJson($form.get(0));
       let method = $form.attr('method');
       let url = $form.attr('action');
@@ -444,9 +445,10 @@ $(function() {
     },
     sendRequestToggleCompletedStatusById: async function(id) {
       let todo = this.todos.get(id);
-      let form = $('#todo-form').get(0);
+      let form = $('.todo-form').get(0);
       let json = form ? serializeFormToJson(form) : todo;
       json.completed = !todo.completed;
+      console.log(serializeFormToJson(form));
 
       let response = await fetch(`/api/todos/${id}`, {
         method: 'PUT',
