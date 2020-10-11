@@ -13,6 +13,10 @@ app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(Auth.init);
+app.use(function(req, res, next) {
+  res.removeHeader('X-Frame-Options');
+  next();
+});
 
 const sessionOptions = {
   genid: (req) => {
