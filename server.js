@@ -13,8 +13,11 @@ app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(Auth.init);
-app.use(function(req, res, next) {
+app.use((req, res, next) => {  // added only to display in iframe
   res.removeHeader('X-Frame-Options');
+  res.append('Access-Control-Allow-Origin', ['*']);
+  res.append('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+  res.append('Access-Control-Allow-Headers', 'Content-Type');
   next();
 });
 
