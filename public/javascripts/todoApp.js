@@ -228,7 +228,8 @@ $(function() {
 
 // Event handlers
     handleCloseModal: function(event) {
-      if ($(event.target).hasClass('modal')) {
+      let target = event.target;
+      if ($(target).hasClass('modal') || $(target).hasClass('modal-content-container')) {
         this.hideTodoModal();
       }
     },
@@ -384,6 +385,7 @@ $(function() {
       $('form').submit(this.handleFormSubmission.bind(this));
       $('#toggle-complete-button').click(this.handleToggleCompletedStatus.bind(this));
       $('#todo-modal').click(this.handleCloseModal.bind(this));
+      $('.modal-content-container').click(this.handleCloseModal.bind(this));
       this.bindTextareaListeners();
       $('input').blur(this.handleValidateTodoTitleOnBlur.bind(this));
       $('input').focus(this.handleClearTodoFlashMessage.bind(this));

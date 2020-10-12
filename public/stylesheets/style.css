@@ -182,6 +182,14 @@ li.form-row {
   overflow: auto;
 }
 
+.modal-content-container {
+  height: 100%;
+  width: 100%;
+  display: grid;
+  justify-content: center;
+  align-content: center;
+}
+
 #todo-modal {
   background-color: rgb(0,0,0);
   background-color: rgba(0,0,0,0.75);
@@ -193,7 +201,7 @@ li.form-row {
 
 #todo-form-container {
   background-color: #fefefe;
-  margin: 200px auto;
+  /* margin: auto; */
   padding: 10px;
   border-radius: 5px;
   border: 2px solid gray;
@@ -201,7 +209,7 @@ li.form-row {
 }
 
 #login-form-container {
-  margin: 200px auto;
+  /* margin: auto; */
   width: 300px;
 }
 
