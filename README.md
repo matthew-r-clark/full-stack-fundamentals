@@ -1,6 +1,6 @@
-# Todo Manager
+# ToDo Manager
 
-This is a simple todo SPA meant to demonstrate my understanding of full-stack fundamentals.
+This is a simple to do SPA meant to demonstrate my understanding of full-stack fundamentals.
 
 Features:
 - Private lists via user accounts.
